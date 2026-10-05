@@ -294,6 +294,9 @@ a.src{display:inline-block;padding-block:11px}
 .sheet img{width:100%;max-width:300px;justify-self:center;border-radius:12px;border:1px solid var(--line)}
 .sheet .acts{display:grid;gap:8px}
 .sheet .acts .btn{width:100%}
+.sheet .linkbox{display:flex;gap:8px;align-items:center;border:1px solid var(--line,#27272a);border-radius:12px;padding:8px 8px 8px 12px;margin:4px 0 10px}
+.sheet .linkbox code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;background:none}
+.sheet .linkbox .btn{width:auto;flex:none;padding:8px 14px}
 .sheet p{font-size:.88rem;color:var(--muted)}
 /* apoie */
 .donate{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:28px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;max-width:820px}
@@ -340,12 +343,13 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
 <div class="sheet" id="story" hidden role="dialog" aria-modal="true" aria-labelledby="story-t"><div class="box">
   <h3 id="story-t">Imagem para o story</h3>
   <img id="story-img" alt="Prévia da imagem de comparação para compartilhar">
+  <div class="linkbox"><code id="story-link"></code><button class="btn" id="story-copy">Copiar link</button></div>
   <div class="acts">
     <button class="btn primary" id="story-share">Compartilhar</button>
     <a class="btn" id="story-dl" download="comparavoto.png">Baixar imagem</a>
     <button class="btn" id="story-close">Fechar</button>
   </div>
-  <p>No celular, toque em Compartilhar e escolha Instagram e depois Story. Se o Instagram não aparecer, baixe a imagem (ou toque e segure nela para salvar) e poste pelo app.</p>
+  <p>No WhatsApp, o link vai junto com a imagem. No Instagram, copie o link, poste a imagem no story e toque no adesivo <strong>Link</strong> para colar. Se o Instagram não aparecer, baixe a imagem (ou toque e segure nela para salvar) e poste pelo app.</p>
 </div></div>
 
 <nav class="bottom" aria-label="Seções">
@@ -4159,7 +4163,7 @@ function vResultado(){
   return `<section class="view">
     <div class="head"><span class="kicker">Resultado · ${esc(R().short)}</span><h2>Quanto suas respostas combinam com cada plano</h2>
       <p>Conta só as perguntas em que você e o candidato têm posição. Não é pesquisa eleitoral e não diz em quem votar.</p></div>
-    ${SHARE("Compartilhar meu resultado","Gera uma imagem com as suas porcentagens para o Instagram e o WhatsApp.")}
+    ${SHARE("Compartilhar meu resultado","Envia a imagem com as suas porcentagens e o link para seus amigos fazerem o quiz.")}
     <div class="result">${S.order.map(k=>{const c=R().cands[k], s=score(k);return `
       <div class="score" style="${cv(c)}">${avatar(c,"sm")}<div class="nm"><strong>${esc(c.nome)}</strong><span class="track"><i style="width:${s??0}%"></i></span></div><b>${s==null?"–":s+"%"}</b></div>`}).join("")}</div>
     <div class="cta"><button class="btn primary" data-go="comparar">Ver as propostas completas</button><button class="btn" data-qreset>Refazer o quiz</button></div>
@@ -4313,6 +4317,7 @@ function render(scroll){
   const tc=document.querySelector(".tabs .chip[aria-pressed=\"true\"]"); if(tc&&tc.parentElement.scrollTo){ const pr=tc.parentElement; pr.scrollLeft += tc.getBoundingClientRect().left - pr.getBoundingClientRect().left - 16; }
   document.getElementById("racebar").hidden = ["faltei","metodologia","apoie"].includes(S.view);
   if(scroll) window.scrollTo({top:0});
+  if(isResult() && (!STORY.pre || STORY.pre.key!==resKey())) prepResult();
 }
 
 document.addEventListener("click", e=>{
@@ -4338,6 +4343,8 @@ document.addEventListener("submit", e=>{ if(e.target.id==="fix") e.preventDefaul
 
 
 /* imagem para stories */
+const QRQ = {"pres": "11111110011010101111101111111|10000010010111011000101000001|10111010100110111001101011101|10111010111100010111001011101|10111010101011001111101011101|10000010111001110100101000001|11111110101010101010101111111|00000000100001000011000000000|10111110001010111100001111100|11010100100100001011111110001|00111010010010010110010010000|01111101100100110011100011010|00001010111110011101000101100|10100001100011101001001110001|11010011100101111110110111100|11010001111101011011111100010|01000111111000100111000001100|10001100010110000111111110101|10110011011010010100010100100|10000101011110100000100100010|10001110110010001110111110111|00000000111011101011100011111|11111110010111111111101011100|10000010110111010001100010000|10111010101110100100111110100|10111010100111001001100001111|10111010111100011011101111110|10000010000001011000100101010|11111110111111011101011010100", "AC": "11111110000111110010001111111|10000010111000010000101000001|10111010111100101001101011101|10111010101010111111101011101|10111010010001110111101011101|10000010000001101100101000001|11111110101010101010101111111|00000000100111010011000000000|10000010111000110100011001110|00101000100110100011000110110|10100011111000011110010010000|01111101110000100011110011000|00000010110011111000101000001|01101001101101101001011110011|00100010110001111110110111100|00110000011011100011000100101|11010111110000100111000001100|11111100100110010111101110111|11010010100011111001111001001|10100001100010110000110100000|10111110111100001110111110111|00000000111011010011100011000|11111110010001111111101011100|10000010010011000001100010011|10111010011011001001111111011|10111010010001011001110001101|10111010001111011011101111110|10000010000110100000011101101|11111110111111011101011010100", "AM": "11111110111000011111101111111|10000010110000110110001000001|10111010000101110010101011101|10111010111110000111001011101|10111010011011000001001011101|10000010000100100111101000001|11111110101010101010101111111|00000000101101101101100000000|10110111001011111111001001011|10001101100010011011111110001|01010111101010101000100100110|01100000110101101000111000001|00101111001000010101000101100|11001000100001001111111000111|11110110010110100101101100111|00011100000101011011111100010|11001110100010010001110111010|00111001000111011100100101110|10101010111000010100010100100|00100100000010010110010010100|01110011001111010101111111100|00000000100011101011100011111|11111110110101001001101011010|10000010111010001010100011010|10111010001000100100111110110|10111010100111111111010111001|10111010110000000000110100101|10000010000000011000100101010|11111110111000101011101100010", "DF": "11111110001010100111001111111|10000010100001000111101000001|10111010010010010001001011101|10111010000101000000001011101|10111010101011001111001011101|10000010010010110011101000001|11111110101010101010101111111|00000000011010001100000000000|10101010000110001100100010010|01011001010111011100111001001|00111111111010101110101010111|10011100101011111100100100010|11001110101000101101111101011|00001000101000111110001001001|10110111100011000110001111011|10110000110110011100111011010|01011010100110011111111001011|01010001100001000000111001101|10001110101100101100101100011|01100100111011100111100011010|10110111000000110110111110000|00000000100100101100100010111|11111110001101000111101011011|10000010010110010110100011001|10111010101010011100111110001|10111010011111001110100110111|10111010101010100011010111001|10000010001010011111100010010|11111110111001000101100010011", "ES": "11111110000100100111001111111|10000010000010001110101000001|10111010001000110101101011101|10111010001011000000001011101|10111010011110000110001011101|10000010111000011111001000001|11111110101010101010101111111|00000000011001001101000000000|10010110111000100000010100000|10001100111111011100111001001|10010111000111101111100011110|01101100100011011000000000110|00000010100100101101111101011|01100100011101110111000000000|01100010010001100010101011111|10110101110000011100111011010|00010010110011010110110000010|00000001010111100100011101001|10110011000100101100101100011|00111000010110101110101010011|10001010100110010010111110100|00000000101100101100100010111|11111110000000001110101010010|10000010101100110010100011101|10111010011000011100111110001|10111010111001000111101111110|10111010010010000111110011101|10000010010111011111100010010|11111110110010101100101011010", "RJ": "11111110101101110010001111111|10000010100111110001001000001|10111010111011100000101011101|10111010010100111111101011101|10111010110101010011001011101|10000010001101101000101000001|11111110101010101010101111111|00000000001100110010100000000|10011111100111101101010010111|10111001010000100011000110110|01101010100100110010110110100|10001100000100111111111111001|00100110101001110000101000001|00010000010110001000111111111|01110111100010110111111110101|10111101010001100011000100101|11100110011110000011100101000|11000000111100011011100010110|11011011110101111001111001001|11010101101101010001010101100|11100010110011000111111111110|00000000101011010011100011000|11111110101001011011101011000|10000010100111001101100010010|10111010110111001001111111011|10111010111011111000010000001|10111010010001010010100110111|10000010001101000000011101101|11111110100101011001111110000", "RN": "11111110001000011111101111111|10000010000010000000101000001|10111010111100101001101011101|10111010101000000111001011101|10111010101101110111101011101|10000010101001110100101000001|11111110101010101010101111111|00000000101111001011000000000|10111110010000100100001111100|00110001010010011011111110001|10001111101110010110010010000|00101000100110100011100011010|01111010110010011101000101100|10100100111001111001001110001|01110111001101111110110111100|11110100100111011011111100010|01111010100110100111000001100|11101100101110000111111110101|10001110011010010100010100100|10010000100010100000100100010|10111010111100001110111110111|00000000100101101011100011111|11111110000011111111101011100|10000010101111010001100010001|10111010101010100100111110110|10111010111011001001100001111|10111010101110111011101111110|10000010011011011000100101010|11111110101100111101011010100", "TO": "11111110101001110010001111111|10000010001100010010101000001|10111010110011000100001011101|10111010011100010101001011101|10111010010010011010001011101|10000010100001101110101000001|11111110101010101010101111111|00000000000101011001000000000|10100011001011001001100100101|11101001010110001001101100011|10011010100111111011111111101|01110000101000101001110001000|00101010100001110000101000001|01110001000001101011011100011|10011011010010010011011010001|11000001111101001001101110000|00001010110101001010101100001|01110100001000010101101100111|11000111000011111001111001001|00111100111110110010110110000|11000110100011100011111111010|00000000110011111001100011101|11111110101100010010101010001|10000010000101000011100010011|10111010001101001001111111011|10111010000001011011110011101|10111010111010010110000010011|10000010000010101010110111000|11111110111101110000110111001"};
+function drawQR(ctx,code,x,y,size){ const rows=code.split("|"), n=rows.length, c=size/n; ctx.fillStyle="#000000"; rows.forEach((row,i)=>{ for(let j=0;j<n;j++) if(row[j]==="1") ctx.fillRect(x+j*c, y+i*c, Math.ceil(c), Math.ceil(c)); }); }
 const STORY = {blob:null, url:null, name:"comparavoto.png"};
 function loadImg(src){ return new Promise(res=>{ if(!src){res(null);return;} const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src; }); }
 function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
@@ -4371,6 +4378,10 @@ async function makeStory(){
   const footer=(pre,post)=>{ ctx.fillStyle="#a1a1aa"; ctx.font=`400 34px ${B}`; ctx.fillText(pre,60,1645);
     ctx.fillStyle="#ffffff"; ctx.font=`800 64px ${D}`; ctx.fillText("comparavoto.com.br",60,1722);
     ctx.fillStyle="#a1a1aa"; ctx.font=`400 30px ${B}`; ctx.fillText(post,60,1775); };
+  const qrFooter=(pre,post)=>{ footer(pre,post);
+    ctx.fillStyle="#ffffff"; rr(ctx,780,1490,240,240,22); ctx.fill();
+    drawQR(ctx,QRQ[S.race]||QRQ.pres,800,1510,200);
+    ctx.fillStyle="#a1a1aa"; ctx.font=`600 26px ${B}`; const t="Quiz "+(S.race==="pres"?"Presidente":S.race), w=ctx.measureText(t).width; ctx.fillText(t,900-w/2,1775); };
   const both=S.order.map(k=>R().cands[k]);
   let name=v;
   if(v==="comparar"){
@@ -4410,7 +4421,7 @@ async function makeStory(){
       if(x.s){ ctx.fillStyle=col; rr(ctx,240,y+180,Math.max(18,750*x.s/100),18,9); ctx.fill(); }
       y+=280; }
     body("Percentual de concordância com o que está escrito em cada plano de governo registrado no TSE, nas perguntas em que respondi e o plano tem posição. Não é pesquisa eleitoral.",60,y+40,960,30,4,"#a1a1aa");
-    footer("Faça o seu em","12 perguntas · presidente e governador"); name=`${S.race}-meu-resultado`;
+    qrFooter("Faça o seu quiz em","Aponte a câmera para o código"); name=`${S.race}-meu-resultado`;
   } else if(v==="quiz"){
     const Q=R().quiz||[], q=Q[Math.min(S.q,Q.length-1)]||Q[0];
     label("Quiz · "+R().label,262); title("Com qual plano você mais concorda?",345,74,2);
@@ -4418,7 +4429,7 @@ async function makeStory(){
     ctx.fillStyle="#ffffff"; ctx.font=`800 54px ${D}`; wrapText(ctx,q?q[0]:"",100,730,880,64,4);
     ["Concordo","Tanto faz","Discordo"].forEach((l,j)=>{ const x=100+j*300; ctx.strokeStyle="#52525b"; ctx.lineWidth=3; rr(ctx,x,1050,270,96,22); ctx.stroke(); ctx.fillStyle="#f4f4f5"; ctx.font=`700 36px ${B}`; const w=ctx.measureText(l).width; ctx.fillText(l,x+(270-w)/2,1110); });
     body("Responda as 12 e veja onde você concorda com cada plano. Nada é guardado e não é pesquisa eleitoral.",60,1300,960,36,3,"#d4d4d8");
-    footer("Faça o quiz em","Presidente e governador · 25 de outubro"); name=`${S.race}-quiz`;
+    qrFooter("Faça o quiz em","Aponte a câmera para o código"); name=`${S.race}-quiz`;
   } else if(v==="faltei"){
     label("Justificativa eleitoral",262); title("Não votou no 1º turno?",345,80,1);
     card(420,300,"#ffffff"); body("Prazo para justificar",100,500,880,34,1,"#a1a1aa");
@@ -4445,6 +4456,24 @@ async function makeStory(){
   STORY.name=`comparavoto-${name.toLowerCase()}.png`;
   return new Promise(res=>cv.toBlob(b=>res(b),"image/png"));
 }
+const SITE="https://comparavoto.com.br/";
+function storyLink(){
+  const v=S.view, withRace=["quiz","comparar","candidatos"].includes(v);
+  return SITE+(v==="inicio"?"":"#"+v+(withRace?"-"+S.race:""));
+}
+function storyText(){
+  const done=S.view==="quiz"&&R().quiz&&S.q>=R().quiz.length;
+  if(done) return "Fiz o quiz do Compara Voto e vi com qual plano de governo minhas respostas combinam mais. Faça o seu:";
+  if(S.view==="quiz") return "Responda 12 perguntas e veja com qual plano de governo você combina mais:";
+  if(S.view==="comparar") return "Compare o que os dois candidatos escreveram no plano de governo:";
+  return "Compara Voto: os planos de governo do 2º turno lado a lado.";
+}
+const isResult=()=>S.view==="quiz" && !!R().quiz && S.q>=R().quiz.length;
+const resKey=()=>S.race+"|"+S.order.join("")+"|"+S.ans.join(",");
+async function prepResult(){
+  const key=resKey(); STORY.pre={key, blob:null};
+  try{ const blob=await makeStory(); if(STORY.pre.key===key && blob) STORY.pre={key, blob, name:STORY.name}; }catch(_){}
+}
 async function openStory(){
   const blob=await makeStory(); if(!blob) return;
   if(STORY.url) URL.revokeObjectURL(STORY.url);
@@ -4453,19 +4482,42 @@ async function openStory(){
   const dl=document.getElementById("story-dl"); dl.href=STORY.url; dl.download=STORY.name;
   const f=new File([blob],STORY.name,{type:"image/png"});
   document.getElementById("story-share").hidden = !(navigator.canShare && navigator.canShare({files:[f]}));
+  STORY.link=storyLink(); document.getElementById("story-link").textContent=STORY.link.replace("https://","");
+  document.getElementById("story-copy").textContent="Copiar link";
   document.getElementById("story").hidden=false;
 }
 document.addEventListener("click", async e=>{
-  if(e.target.closest("[data-story]")){ openStory(); track("story-"+S.view+(S.view==="quiz"&&R().quiz&&S.q>=R().quiz.length?"-resultado":"")+"-"+S.race+(S.view==="comparar"?"-"+S.theme:""),true); return; }
+  if(e.target.closest("[data-story]")){
+    const pre=STORY.pre;
+    if(isResult() && pre && pre.blob && pre.key===resKey() && navigator.canShare){
+      const f=new File([pre.blob],pre.name,{type:"image/png"});
+      const data={files:[f], text:storyText()+" "+storyLink()};
+      if(navigator.canShare(data)){
+        track("story-quiz-resultado-direto-"+S.race,true);
+        try{ await navigator.share(data); track("story-compartilhado",true); }
+        catch(err){ if(err && err.name!=="AbortError") openStory(); }
+        return;
+      }
+    }
+    openStory(); track("story-"+S.view+(S.view==="quiz"&&R().quiz&&S.q>=R().quiz.length?"-resultado":"")+"-"+S.race+(S.view==="comparar"?"-"+S.theme:""),true); return; }
   if(e.target.closest("#story-close") || e.target.id==="story"){ document.getElementById("story").hidden=true; return; }
   if(e.target.closest("#story-share") && STORY.blob){
     const f=new File([STORY.blob],STORY.name,{type:"image/png"});
-    try{ await navigator.share({files:[f]}); track("story-compartilhado",true); }catch(_){}
+    const data={files:[f], text:storyText()+" "+STORY.link};
+    try{ await navigator.share(navigator.canShare(data)?data:{files:[f]}); track("story-compartilhado",true); }catch(_){}
+  }
+  if(e.target.closest("#story-copy") && STORY.link){
+    const b=document.getElementById("story-copy");
+    try{ await navigator.clipboard.writeText(STORY.link); b.textContent="Copiado"; }
+    catch(_){ const r=document.createRange(); r.selectNodeContents(document.getElementById("story-link")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent="Selecionado"; }
+    track("story-link-copiado",true);
   }
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") document.getElementById("story").hidden=true; });
 
-const h = location.hash.slice(1); if(VIEWS[h]) S.view=h;
+{ const [hv,hr]=decodeURIComponent(location.hash.slice(1)).split("-");
+  if(VIEWS[hv]) S.view=hv;
+  if(hr && RACES[hr]){ S.race=hr; S.mode = hr==="pres" ? "pres" : "gov"; S.pick=false; } }
 render();
 </script>
 
