@@ -4050,6 +4050,7 @@ const ICON = {
 };
 const ic = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 const sigla = p => p.split(" · ")[0];
+function track(path,ev){ try{ if(window.goatcounter && window.goatcounter.count) window.goatcounter.count({path:path, title:path, event:!!ev}); }catch(_){} }
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLScKVUouowo0SWEpeEid0eciEvZkHzPtLWZMpOdI-M2w2Q3QqA/viewform";
 const fixUrl = (disputa,cand,tema) => FORM+"?usp=pp_url&entry.2076589980="+encodeURIComponent(disputa)+"&entry.520781237="+encodeURIComponent(cand)+"&entry.1923785878="+encodeURIComponent(tema);
 const PC = {"PT":"#ef4444","PL":"#3b82f6","PP":"#818cf8","Republicanos":"#22c55e","PSD":"#f59e0b","MDB":"#facc15","União Brasil":"#38bdf8","PSDB":"#fde047"};
@@ -4305,20 +4306,20 @@ function render(scroll){
 }
 
 document.addEventListener("click", e=>{
-  const go=e.target.closest("[data-go]"); if(go){ S.view=go.dataset.go; render(true); return; }
-  const r=e.target.closest("[data-race]"); if(r){ if(r.dataset.race!==S.race){S.race=r.dataset.race; S.q=0; S.ans=[];} S.mode="gov"; S.pick=false; render(); return; }
+  const go=e.target.closest("[data-go]"); if(go){ S.view=go.dataset.go; render(true); track("/#"+S.view); return; }
+  const r=e.target.closest("[data-race]"); if(r){ if(r.dataset.race!==S.race){S.race=r.dataset.race; S.q=0; S.ans=[];} S.mode="gov"; S.pick=false; render(); track("disputa-"+S.race,true); return; }
   const md=e.target.closest("[data-mode]"); if(md){ const m=md.dataset.mode;
     if(m==="pres"){ if(S.race!=="pres"){S.race="pres"; S.q=0; S.ans=[];} S.mode="pres"; S.pick=false; }
     else { S.pick = S.mode==="gov" ? !S.pick : S.race==="pres"; S.mode="gov"; }
     render(); return; }
-  const cp=e.target.closest("[data-copy]"); if(cp){ const el=document.getElementById(cp.dataset.copy), ok=document.getElementById(cp.dataset.copy+"-ok");
+  const cp=e.target.closest("[data-copy]"); if(cp){ track("pix-copiar-"+cp.dataset.copy,true); const el=document.getElementById(cp.dataset.copy), ok=document.getElementById(cp.dataset.copy+"-ok");
     const done=()=>{ if(ok){ ok.hidden=false; setTimeout(()=>ok.hidden=true,2500);} };
     const fallback=()=>{ el.focus(); el.select(); try{ if(document.execCommand("copy")) done(); }catch(_){} };
     try{ navigator.clipboard.writeText(el.value).then(done,fallback); }catch(_){ fallback(); }
     return; }
   if(e.target.closest("[data-pick]")){ S.pick=true; render(); return; }
-  const t=e.target.closest("[data-theme-k]"); if(t){ S.theme=t.dataset.themeK; render(); return; }
-  const a=e.target.closest("[data-ans]"); if(a){ const v=a.dataset.ans; S.ans[S.q]= v==="skip"?"skip":Number(v); S.q++; render(); return; }
+  const t=e.target.closest("[data-theme-k]"); if(t){ S.theme=t.dataset.themeK; render(); track("tema-"+S.theme,true); return; }
+  const a=e.target.closest("[data-ans]"); if(a){ const v=a.dataset.ans; S.ans[S.q]= v==="skip"?"skip":Number(v); S.q++; render(); if(S.q===R().quiz.length) track("quiz-concluido-"+S.race,true); return; }
   if(e.target.closest("[data-qback]")){ S.q=Math.max(0,S.q-1); render(); return; }
   if(e.target.closest("[data-qreset]")){ S.q=0; S.ans=[]; render(true); return; }
 });
@@ -4383,11 +4384,11 @@ async function openStory(){
   document.getElementById("story").hidden=false;
 }
 document.addEventListener("click", async e=>{
-  if(e.target.closest("[data-story]")){ openStory(); return; }
+  if(e.target.closest("[data-story]")){ openStory(); track("story-"+S.race+"-"+S.theme,true); return; }
   if(e.target.closest("#story-close") || e.target.id==="story"){ document.getElementById("story").hidden=true; return; }
   if(e.target.closest("#story-share") && STORY.blob){
     const f=new File([STORY.blob],STORY.name,{type:"image/png"});
-    try{ await navigator.share({files:[f]}); }catch(_){}
+    try{ await navigator.share({files:[f]}); track("story-compartilhado",true); }catch(_){}
   }
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") document.getElementById("story").hidden=true; });
@@ -4396,5 +4397,6 @@ const h = location.hash.slice(1); if(VIEWS[h]) S.view=h;
 render();
 </script>
 
+<script data-goatcounter="https://comparavoto.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
