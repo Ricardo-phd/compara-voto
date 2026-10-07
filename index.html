@@ -312,6 +312,13 @@ a.src{display:inline-block;padding-block:11px}
 .support p{max-width:52ch}
 @media (max-width:680px){.donate{grid-template-columns:1fr;padding:18px}.donate .qrbox{max-width:240px;justify-self:center;order:2}}
 footer .links{display:flex;gap:18px;flex-wrap:wrap}
+footer .credit{flex-basis:100%;font-size:.8rem;opacity:.75}
+.apoio-strip{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:.85rem}
+.apoio-strip .t{text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:700}
+.apoio-strip a,.apoio-strip span.n{color:var(--ink,#fff);text-decoration:none}
+.sponsor-list{display:flex;flex-wrap:wrap;gap:10px}
+.sponsor-list .s{border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--ink,#fff);text-decoration:none}
+.mailrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 footer{border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
 footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -337,7 +344,9 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
 
 <footer><div class="wrap">
   <span>Compara Voto é independente e apartidário. Fonte: planos de governo registrados no TSE.</span>
-  <span class="links"><button class="linkbtn" data-go="apoie">Apoie o projeto</button><button class="linkbtn" data-go="metodologia">Como fazemos</button></span>
+  <span class="links"><button class="linkbtn" data-go="apoie">Apoie o projeto</button><button class="linkbtn" data-go="apoiadores">Seja apoiador</button><button class="linkbtn" data-go="metodologia">Como fazemos</button></span>
+  <div class="apoio-strip" id="apoio-strip" hidden></div>
+  <span class="credit">Feito por SYRA Agência de IA</span>
 </div></footer>
 
 <div class="sheet" id="story" hidden role="dialog" aria-modal="true" aria-labelledby="story-t"><div class="box">
@@ -4103,7 +4112,7 @@ function vInicio(){
       <button class="action" data-go="candidatos">${ic("who")}<strong>Conhecer os candidatos</strong><span>Partido, vice, bens declarados e quem financia a campanha.</span></button>
       <button class="action" data-go="faltei">${ic("cal")}<strong>Faltei no 1º turno</strong><span>Como justificar até 3 de dezembro e quanto é a multa.</span></button>
     </div>
-    <div class="support"><p><strong>O Compara Voto não tem anúncios nem dinheiro de partido.</strong> Se o site te ajudou, você pode apoiar com um Pix de qualquer valor.</p><button class="btn" data-go="apoie">Apoiar com Pix</button></div>
+    <div class="support"><p><strong>O Compara Voto não aceita dinheiro de partido nem de candidato.</strong> Se o site te ajudou, você pode apoiar com um Pix de qualquer valor.</p><button class="btn" data-go="apoie">Apoiar com Pix</button></div>
     <div class="trust"><span>${ic("ok")}Fonte única: planos registrados no TSE</span><span>${ic("ok")}Cada resumo traz o trecho original</span><span>${ic("ok")}Ordem dos candidatos sorteada</span></div>
   </section>`;
 }
@@ -4287,7 +4296,7 @@ const QR = `<svg class="qr" role="img" aria-label="QR Code Pix do Compara Voto" 
 function vApoie(){
   return `<section class="view">
     <div class="head"><span class="kicker">Apoie o projeto</span><h2>Ajude a manter o Compara Voto no ar</h2>
-      <p>O site é independente, apartidário e não tem anúncios. As doações pagam a hospedagem e o tempo de revisão dos resumos. Você escolhe o valor.</p></div>
+      <p>O site é independente e apartidário, e não aceita dinheiro de partido nem de candidato. As doações pagam a hospedagem e o tempo de revisão dos resumos. Você escolhe o valor.</p></div>
     ${SHARE()}
     <div class="donate">
       <div class="steps">
@@ -4304,18 +4313,55 @@ function vApoie(){
       <ul><li>Doar não dá direito a nenhuma interferência no conteúdo. Os resumos seguem as mesmas regras para todos os candidatos.</li>
       <li>Não aceitamos doações de candidatos, partidos ou fornecedores de campanha.</li>
       <li>No app do banco, o recebedor aparece como <strong>Ricardo Quadri</strong>, responsável pelo Compara Voto.</li></ul></div>
+    <div class="support"><p><strong>Tem uma empresa ou negócio?</strong> Seja apoiador do Compara Voto e tenha o nome da sua marca no rodapé do site até o 2º turno.</p><button class="btn" data-go="apoiadores">Ver como funciona</button></div>
   </section>`;
 }
-const VIEWS = {apoie:vApoie, inicio:vInicio, comparar:vComparar, quiz:vQuiz, candidatos:vCandidatos, faltei:vFaltei, metodologia:vMetodologia};
+const SPONSORS = [
+  // Para incluir um apoiador, copie a linha abaixo, tire as duas barras e troque os dados:
+  // {nome:"Nome da empresa", cidade:"Cidade/UF", url:"https://site-ou-instagram-da-empresa"},
+];
+const MAIL = "comparavoto@gmail.com";
+function sponsorStrip(){
+  const el=document.getElementById("apoio-strip"); if(!el) return;
+  if(!SPONSORS.length){ el.hidden=true; return; }
+  el.innerHTML = `<span class="t">Apoio</span>` + SPONSORS.map(s=> s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener sponsored">${esc(s.nome)}</a>` : `<span class="n">${esc(s.nome)}</span>`).join("");
+  el.hidden=false;
+}
+function vApoiadores(){
+  const subj=encodeURIComponent("Quero apoiar o Compara Voto");
+  const bodyTxt=encodeURIComponent("Olá! Tenho interesse em ser apoiador do Compara Voto.\n\nEmpresa:\nCidade/UF:\nRamo de atividade:\nSite ou Instagram:\nNome e telefone para contato:\n\nDeclaro que a empresa não tem ligação com candidatos, partidos ou órgãos públicos.");
+  const list = SPONSORS.length
+    ? `<div class="sponsor-list">${SPONSORS.map(s=> s.url ? `<a class="s" href="${esc(s.url)}" target="_blank" rel="noopener sponsored">${esc(s.nome)}${s.cidade?` <span class="small muted">· ${esc(s.cidade)}</span>`:""}</a>` : `<span class="s">${esc(s.nome)}${s.cidade?` <span class="small muted">· ${esc(s.cidade)}</span>`:""}</span>`).join("")}</div>`
+    : `<p class="muted">Ainda não temos apoiadores. Seja o primeiro.</p>`;
+  return `<section class="view">
+    <div class="head"><span class="kicker">Seja apoiador</span><h2>Apoie o Compara Voto com a sua empresa</h2>
+      <p>O Compara Voto ajuda eleitores a comparar os planos de governo do 2º turno sem tomar partido. Empresas e negócios que acreditam em voto informado podem apoiar o projeto até 25 de outubro.</p></div>
+    <div class="prose"><h3>O que o apoiador recebe</h3>
+      <ul><li>O nome da empresa, com link para o site ou Instagram, na faixa <strong>Apoio</strong> no rodapé de todas as páginas.</li>
+      <li>O nome também aparece nesta página, na lista de apoiadores.</li>
+      <li>O apoio vale até o fim do 2º turno, em 25 de outubro de 2026.</li>
+      <li>Valor: <strong>a combinar</strong>. O mesmo valor vale para todos os apoiadores do mesmo período.</li></ul></div>
+    <div class="prose"><h3>Regras para apoiadores</h3>
+      <ul><li>Não aceitamos candidatos, partidos, coligações, campanhas, governos, órgãos públicos, nem empresas que prestam serviço a campanhas ou ao poder público.</li>
+      <li>O apoiador não tem nenhuma influência sobre o conteúdo. Os resumos, o quiz e a ordem dos candidatos seguem as mesmas regras de sempre.</li>
+      <li>A marca do apoiador nunca aparece junto dos candidatos, dos resumos ou do resultado do quiz.</li>
+      <li>Não aceitamos mensagens políticas, de apoio ou de crítica a candidatos na divulgação do apoiador.</li>
+      <li>Podemos recusar ou encerrar um apoio que vá contra essas regras.</li></ul></div>
+    <div class="prose"><h3>Apoiadores</h3>${list}</div>
+    <div class="support"><p><strong>Quer apoiar?</strong> Mande um e-mail com o nome da empresa, a cidade e o ramo de atividade. Respondemos com o valor e os próximos passos.</p>
+      <div class="mailrow"><a class="btn primary" href="mailto:${MAIL}?subject=${subj}&body=${bodyTxt}" data-mail>Enviar e-mail</a><span class="small muted">${MAIL}</span></div></div>
+  </section>`;
+}
+const VIEWS = {apoiadores:vApoiadores, apoie:vApoie, inicio:vInicio, comparar:vComparar, quiz:vQuiz, candidatos:vCandidatos, faltei:vFaltei, metodologia:vMetodologia};
 
 function render(scroll){
-  const needPick = S.mode==="gov" && S.race==="pres" && !["faltei","metodologia","apoie"].includes(S.view);
+  const needPick = S.mode==="gov" && S.race==="pres" && !["faltei","metodologia","apoie","apoiadores"].includes(S.view);
   app.innerHTML = needPick ? `<section class="view"><div class="pickhint"><h2>Escolha o seu estado</h2><p class="muted">Toque no estado acima para ver a disputa de governador.</p></div></section>` : VIEWS[S.view]();
   document.getElementById("racebar-in").innerHTML = raceBar();
   document.querySelectorAll("[data-nav]").forEach(b=>b.setAttribute("aria-current", b.dataset.go===S.view?"page":"false"));
   document.querySelectorAll("[data-race]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.race===S.race));
   const tc=document.querySelector(".tabs .chip[aria-pressed=\"true\"]"); if(tc&&tc.parentElement.scrollTo){ const pr=tc.parentElement; pr.scrollLeft += tc.getBoundingClientRect().left - pr.getBoundingClientRect().left - 16; }
-  document.getElementById("racebar").hidden = ["faltei","metodologia","apoie"].includes(S.view);
+  document.getElementById("racebar").hidden = ["faltei","metodologia","apoie","apoiadores"].includes(S.view);
   if(scroll) window.scrollTo({top:0});
   if(isResult() && (!STORY.pre || STORY.pre.key!==resKey())) prepResult();
 }
@@ -4440,7 +4486,7 @@ async function makeStory(){
     footer("Passo a passo completo em","Manda pra quem faltou"); name="faltei";
   } else if(v==="apoie"){
     label("Projeto independente e apartidário",262); title("Apoie o Compara Voto",345,80,1);
-    body("Sem anúncios e sem dinheiro de partido. Um Pix de qualquer valor ajuda a manter o site no ar.",60,450,960,40,3,"#d4d4d8");
+    body("Sem dinheiro de partido nem de candidato. Um Pix de qualquer valor ajuda a manter o site no ar.",60,450,960,40,3,"#d4d4d8");
     ctx.fillStyle="#ffffff"; rr(ctx,240,660,600,600,30); ctx.fill();
     { const vb=+(QR.match(/viewBox="0 0 (\d+)/)||[0,53])[1], cell=560/vb; ctx.fillStyle="#000000";
       const d=(QR.match(/<path[^>]* d="([^"]+)"/)||[])[1]||"";
@@ -4515,6 +4561,8 @@ document.addEventListener("click", async e=>{
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") document.getElementById("story").hidden=true; });
 
+sponsorStrip();
+document.addEventListener("click", e=>{ if(e.target.closest("[data-mail]")) track("apoiador-contato",true); });
 { const [hv,hr]=decodeURIComponent(location.hash.slice(1)).split("-");
   if(VIEWS[hv]) S.view=hv;
   if(hr && RACES[hr]){ S.race=hr; S.mode = hr==="pres" ? "pres" : "gov"; S.pick=false; } }
